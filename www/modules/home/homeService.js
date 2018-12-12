@@ -32,11 +32,7 @@ angular.module("motohelper").service('homeService', function () {
         mapa.setView([localizacao.latitude, localizacao.longitude], 13);
     };
 
-    _destroyMap = function () {
-        mapa = null;
-    };
-
-    _setMarkersFulltrack = function (localizacoes) {
+    _setMarkersMotoboys = function (localizacoes) {
         _clearLears();
         var rotas = [];
 
@@ -53,23 +49,27 @@ angular.module("motohelper").service('homeService', function () {
         });
     };
 
+    _setMarkerHouse = function (localizacaoCasa) {
+        L.marker([localizacaoCasa.latitude, localizacaoCasa.longitude], {
+            icon: L.AwesomeMarkers.icon({
+                icon: 'user',
+                markerColor: 'black',
+                prefix: 'fa'
+            })
+        }).addTo(markersGroup);
+    };
 
-    _setCorridaEmAndamento = function(servico){
+    _setCorridaEmAndamento = function(posicoes, rotasInfo, motoboy){
         _clearLears();
+        _setMarkerHouse(rotasInfo.final.posicao);
 
-        var rotas = [];
-
-        var marker = _criarMaker(servico.motoboy, servico.motoboy.cor);
+        var marker = _criarMaker(rotasInfo.inicial.posicao, motoboy.veiculo_atual.cor.label);
 
         var icon = angular.element(marker._icon);
-        icon.append(_createMarkerLabel(servico.motoboy, servico.motoboy.cor));
+        icon.append(_createMarkerLabel(motoboy.veiculo_atual, motoboy.veiculo_atual.cor.label));
 
-        rotas.push([Number(servico.motoboy.latitude), Number(servico.motoboy.longitude)]);
-        rotas.push([Number(servico.possicaoCliente.latitude), Number(servico.possicaoCliente.longitude)]);
 
-        _setMarkerHouse(servico.possicaoCliente);
-        _criarRotas(rotas);
-
+        _criarRotas(posicoes);
     }
 
     _criarRotas = function(rotas){
@@ -95,32 +95,6 @@ angular.module("motohelper").service('homeService', function () {
         }
     };
 
-    _buscarCorPorEstadoDoVeiculo = function (veiculo) {
-        var cor = "";
-        switch (veiculo.estado_veiculo) {
-            case 1:
-                cor = "red";
-                break;
-            case 2:
-                cor = "green";
-                break;
-            case 3:
-                cor = "blue";
-                break;
-        }
-        return cor;
-    };
-
-    _setMarkerHouse = function (localizacaoCasa) {
-            L.marker([localizacaoCasa.latitude, localizacaoCasa.longitude], {
-                icon: L.AwesomeMarkers.icon({
-                    icon: 'user',
-                    markerColor: 'black',
-                    prefix: 'fa'
-                })
-            }).addTo(markersGroup);
-    };
-
     _createMarkerLabel = function (posicao, cor) {
 
         label = '<div class="marker_div marker_div_' + cor + '"><span> ' + posicao.placa + '</span></div>';
@@ -128,21 +102,9 @@ angular.module("motohelper").service('homeService', function () {
         return label;
     };
 
-    _createPopupPorVeiculo = function (veiculo, cor) {
-        return '<ul class="list">\n' +
-            '  <div class="item item-divider">\n' +
-            '    Candy Bars\n' +
-            '  </div>\n' +
-            '    <li class="item">\n' +
-            '          <span><i class="fa fa-globe"></i> Latitude: <strong>\' + veiculo.latitude + \'</strong></span>\n' +
-            '    </li>\n' +
-            '</ul>';
-    }
-
     return {
         initMapa: _initialize,
-        setMarkers: _setMarkersFulltrack,
-        destroyMap : _destroyMap,
+        setMarkers: _setMarkersMotoboys,
         setMarkerHouse: _setMarkerHouse,
         setCorridaEmAndamento : _setCorridaEmAndamento
     };

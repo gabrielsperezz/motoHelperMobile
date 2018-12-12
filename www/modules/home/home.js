@@ -3,6 +3,14 @@ angular.module('motohelper')
 
     var client = null;
     $scope.buscandoServicos = true;
+    homeService.initMapa($localStorage.getObject('user').posicao);
+
+    function initiVariaveis() {
+        $scope.corridas = [];
+        $scope.corridaAtual =  null;
+        $scope.rotas = null;
+    }
+    initiVariaveis()
 
     function atualizaTemplate(){
         corridaRequest.buscarUltimaPosicaoMotoboys().getRequest().then(function (data) {
@@ -37,18 +45,70 @@ angular.module('motohelper')
         return localizacoes;
     }
 
-    homeService.initMapa($localStorage.getObject('user').posicao);
+    if($localStorage.getObject("corrida_atual") != null){
+        setCorrida();
+    }else{
+        atualizaTemplate();
+    }
 
-    atualizaTemplate();
 
     $scope.solicitarServico = function () {
         loading.show('Buscando motoboys');
-        $scope.buscandoServicos = false;
         corridaRequest.buscarServico().getRequest().then(function (data) {
             $localStorage.setObject("corrida_atual", data.data);
             conectaComMQTT(data.data.id);
         });
     }
+
+
+    function setCorrida(){
+        corridaRequest.buscarCorridaAtual().getRequest().then(function (data) {
+            var corrida = data.data;
+            $localStorage.setObject("corrida_atual", corrida);
+            $scope.corridaAtual = corrida;
+            corridaRequest.buscarRotaCorrida(corrida.id_motoboy_atendendo).getRequest().then(function (data) {
+
+                conectaComMQTT($scope.corridaAtual.id);
+                $scope.rotas = data.data;
+
+                setNovoServico($scope.rotas.rotas_clean, $scope.rotas, corrida.motoboy);
+
+                loading.hide();
+                $scope.buscandoServicos = false;
+
+                setTimeout(function () {
+                    $scope.$apply();
+                },0);
+            });
+        })
+
+    }
+
+    setNovoServico = function (posicoes, rotasInfo, corrida) {
+        homeService.setCorridaEmAndamento(posicoes, rotasInfo, corrida)
+    };
+
+
+    $scope.preparaFinalizarServico = function () {
+        $scope.modal.show();
+    };
+
+    $scope.finalizarCorrida = function (idCorrida) {
+        corridaRequest.finalizarCorrida(idCorrida, null).getRequest().then(function (data) {
+            finalizaCorrida();
+        });
+    }
+
+    function finalizaCorrida() {
+        $scope.buscandoServicos = true;
+        $scope.corridaAtual = null;
+        $localStorage.setObject("corrida_atual", null);
+        initiVariaveis();
+        atualizaTemplate();
+        $scope.modal.hide();
+    }
+
+
 
     function conectaComMQTT(idCorrida) {
         client = new Paho.MQTT.Client(constant.MQTT_URL, Number(constant.MQTT_PORTA), "", String(homeStorage.geraIdMQQT()));
@@ -81,42 +141,18 @@ angular.module('motohelper')
             if (message != null) {
                 console.log(message);
                 if(message.topic.match('/aceita')){
-                    var corrida  =JSON.parse(message.payloadString);
-                    console.log(corrida)
-                    $localStorage.setObject("corrida", JSON.parse(message.payloadString));
-                    var objServico = {
-                        possicaoCliente : {latitude : '-22.207151', longitude : '-49.681706'},
-                        motoboy: {
-                            nome : "Paulo", latitude : '-22.220743', longitude : '-49.660133', placa : "KDJ-1311", modelo : 'HONDA - CBTWISTER 250F', cor : 'gray', ultimaPosicao: "Garça, São Paulo, Rua Carlos Ferrari Nº941"
-                        }
-                    }
-                    $localStorage.setObject("servico", objServico)
+                    setCorrida();
                 }
-
-                setTimeout(function () {
-                    $ionicLoading.hide();
-                    var objServico = {
-                        possicaoCliente : {latitude : '-22.207151', longitude : '-49.681706'},
-                        motoboy: {
-                            nome : "Paulo", latitude : '-22.220743', longitude : '-49.660133', placa : "KDJ-1311", modelo : 'HONDA - CBTWISTER 250F', cor : 'gray', ultimaPosicao: "Garça, São Paulo, Rua Carlos Ferrari Nº941"
-                        }
-                    }
-
-                    $scope.motoboy = objServico.motoboy;
-
-                    setNovoServico(objServico)
-                }, 1000);
+                if(message.topic.match('/posicoes')){
+                    setCorrida();
+                }
+                if(message.topic.match('/cancelar')){
+                    finalizaCorrida()
+                }
                 $scope.$apply();
             }
         }
     };
 
-    setNovoServico = function (posicoes) {
-        homeService.setCorridaEmAndamento(posicoes)
-    }
-    
-    $scope.finalizarServico = function (servico) {
-        $scope.modal.show();
-    };
 
 });

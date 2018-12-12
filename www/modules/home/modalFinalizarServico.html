@@ -11,12 +11,12 @@
                     <div class="col col-70 no-padding-bottom-top">
                         <div class="row no-padding-bottom-top">
                             <div class="col consumo-title">
-                                PLACA: {{motoboy.placa}}
+                                PLACA: {{corridaAtual.motoboy.veiculo_atual.placa}}
                             </div>
                         </div>
                         <div class="row no-padding-bottom-top">
                             <div class="col veiculo-info">
-                                VEICULO: {{motoboy.modelo}}
+                                VEICULO: {{corridaAtual.motoboy.veiculo_atual.fabricante}} - {{corridaAtual.motoboy.veiculo_atual.modelo}}
                             </div>
                         </div>
                     </div>
@@ -26,7 +26,7 @@
             <div class="item item-text-wrap center item-user">
                 <div class="row font-xs">
                     <div class="col no-padding" style="text-align: left;"><b>Nome</b></div>
-                    <div class="col no-padding" style="text-align: center;"><b>{{motoboy.nome}}</b></div>
+                    <div class="col no-padding" style="text-align: center;"><b>{{corridaAtual.motoboy.descricao}}</b></div>
                 </div>
             </div>
 
@@ -55,7 +55,7 @@
                     </label>
 
 
-                    <button class="button button-block button-custom buttonRadioLogin" ng-click="finalizar()">Finalizar </button>
+                    <button class="button button-block button-custom buttonRadioLogin" ng-click="finalizarCorrida(corridaAtual.id)">Finalizar </button>
                 </form>
             </div>
         </form>

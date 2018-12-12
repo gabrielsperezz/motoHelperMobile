@@ -44,26 +44,64 @@
         </ion-header-bar>
 
         <ion-content>
-            <ion-refresher  pulling-text="{{'atualizando' | translate}}" on-refresh="menuDoRefresh()">
+            <ion-refresher  pulling-text="{{'atualizando' | translate}}" on-refresh="atualizarHistoricoDeCorridas()">
             </ion-refresher>
             <div ng-show="eventos && eventos.length < 1">
                 <div class="text-center text-informa-login gray" > {{'nao_ha_eventos_para_mostrar' | translate}}</div>
             </div>
 
             <ion-list>
-                <div collection-repeat="corrida in corridas" item-height="72" >
-                    <div class="row item item-text-wrap" style="height:70px;overflow:hidden">
-                        <div class="col-15 padding text-center">
-                            <i class="ion-checkmark-round font-sm"></i>
-                        </div>
-                        <div class="col-85">
-                            <div class="center grey font-xs">{{ corrida.data }}
+                <div collection-repeat="corrida in corridas">
+
+                    <div item-height="72" ng-if="corrida.solicitado" >
+                        <div class="row item item-text-wrap" style="height:70px;overflow:hidden">
+                            <div class="col-15 padding text-center">
+                                <i class="ion-checkmark-round font-sm"></i>
                             </div>
-                            <label>
-                                {{corrida.mensagem}}
-                            </label>
+                            <div class="col-85">
+                                <div class="center grey font-xs">{{ corrida.solicitado }}
+                                </div>
+                                <label>
+                                    Corrida Solicitada
+                                </label>
+                            </div>
                         </div>
                     </div>
+
+
+
+                    <div item-height="72" ng-if="corrida.fim" >
+
+                        <div class="row item item-text-wrap" style="height:70px;overflow:hidden">
+                            <div class="col-15 padding text-center">
+                                <i class="ion-checkmark-round font-sm"></i>
+                            </div>
+                            <div class="col-85">
+                                <div class="center grey font-xs">{{ corrida.fim }}
+                                </div>
+                                <label>
+                                    Corrida Finalizada
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div item-height="72" ng-if="corrida.inicio" >
+                        <div class="row item item-text-wrap" style="height:70px;overflow:hidden">
+                            <div class="col-15 padding text-center">
+                                <i class="ion-checkmark-round font-sm"></i>
+                            </div>
+                            <div class="col-85">
+                                <div class="center grey font-xs">{{ corrida.inicio }}
+                                </div>
+                                <label>
+                                    Corrida Iniciada
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </ion-list>
         </ion-content>
